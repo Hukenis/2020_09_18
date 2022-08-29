@@ -117,7 +117,7 @@ if [[ ${mysql_Host} -ne localhost ]];then
 	read -p "[INFO_MYSQL]-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] Do you want to continue? (Y/N)"  choice02
 		case ${choice02} in 
 		yes|Yes|Y|y|YES)
-		Initialize_Mysql_configuration
+		judge_Initialize_Mysql_Host
 		;;
 		no|NO|No|N|n)
 		exit
@@ -161,7 +161,6 @@ EOF
 Main(){
 download_zabbix
 install_zabbix
-judge_Initialize_Mysql_Host
-Initialize_Mysql_configuration
+judge_Initialize_Mysql_Host ## 此函数包含了 Initialize_Mysql_configuration，并作为其入口
 Initialize_ZabbixWeb_configuration
 }
