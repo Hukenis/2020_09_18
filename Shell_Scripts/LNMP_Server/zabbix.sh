@@ -125,7 +125,7 @@ if [[ ${mysql_Host} -ne localhost ]];then
 		esac
 	done
 else
-	Initialize_Mysql_configuration	
+	Initialize_Mysql_configuration	## 待修正
 fi
 }
 
@@ -161,6 +161,7 @@ EOF
 Main(){
 download_zabbix
 install_zabbix
-judge_Initialize_Mysql_Host ## 此函数包含了 Initialize_Mysql_configuration，并作为其入口
+judge_Initialize_Mysql_Host ## 这个不需要在函数中去用else判断另一个函数应不应该执行，给exit附上非0的退出码，从函数整体的运行结果来做if判断来决定下一个动作要不要做
+Initialize_Mysql_configuration  ## 待修正 
 Initialize_ZabbixWeb_configuration
 }
