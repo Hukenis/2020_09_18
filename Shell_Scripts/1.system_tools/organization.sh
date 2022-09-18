@@ -19,9 +19,9 @@ info_sign3=[FAILED]
 # time_stamp=$(date "+${info_sign1}[%Y-%m-%d %H:%M:%S]")
 
 
-#----Function-----------------------------------------------------------------------------------------------------------------------------
-#  Usage: Determine the system model, the related functions of ubuntu may be written in the future. At present, only Centos7 is considered
-#-----------------------------------------------------------------------------------------------------------------------------------------
+#----Function-----------------------------------------------------------------------------------
+#  Usage: Determine the system model, User permissions ; This part belongs to the public premise
+#-----------------------------------------------------------------------------------------------
 
 judge_user(){
 if [[ -z $(whoami | grep -oi root ) ]];then 
@@ -41,6 +41,10 @@ test_distro_arch() {
 }
 test_distro_arch
 
+
+#----Function-----------------------
+#  Usage: OS Process Branch Function
+#-----------------------------------
 judge_os(){
 avalible_os_=(centos ubuntu)
 os_message=/etc/os-release
@@ -73,8 +77,9 @@ elif echo ${interpretation1} | grep -qwi "ubuntu";then
 	sleep 1
 	echo "Function not developed";exit	## 调用ubuntu 系列功能
 fi
-
 }
+
+
 #----Function------------------------------------------------
 #  Usage: Organizational transformation applicable to centos7
 #------------------------------------------------------------
@@ -123,6 +128,7 @@ fi
 install_centos7(){
 disableSelinux
 Calibration_time
+useradd_
 
 mkdir /opt/{scripts,tools,source_package} -p
 mkdir /data  -p
@@ -160,6 +166,8 @@ fi
 systemctl enable iptables	>/dev/null 2>&1
 if [ $? -ne 0  ];then
          echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): Iptables  Change failed \n"
+else
+	(iptables_init && echo -e "\n$(date "+${info_sign2}[%Y-%m-%d %H:%M:%S]"): Iptables Initialization completed \n" )
 fi
 kernel_upgrade1 
 }
@@ -317,16 +325,182 @@ fi
 #-----Function--------------------
 #  Usage : Iptables initialization
 #---------------------------------
+iptables_init(){
+local iptables_config="/etc/sysconfig/iptables-config"
+local iptables_config_Backup='/etc/sysconfig/iptables-config.backup'
+if [ -e $sshConfigBackup ];then
+	Initialize_import	
+else
+	cp ${iptables_config}{,.backup}
+	Initialize_import 
+	if systemctl start iptables;then
+		echo -e "\n$(date "+${info_sign1}[%Y-%m-%d %H:%M:%S]"): iptables is started"
+	else
+		echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"):  Failed to start iptables"
+	fi
+fi
+}
+
+Initialize_import(){
+cat <<EOF >/etc/sysconfig/iptables-config
+
+    # clear all earlier configurations
+    iptables -F
+    iptables -t nat -F
+    iptables -t mangle -F
+    iptables -X
+    iptables -t nat -X
+    iptables -t mangle -X
+
+    iptables -P INPUT DROP
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT DROP
+
+    # enable loopback
+    iptables -A INPUT -i lo -j ACCEPT
+
+    # enable already established connections
+    iptables -A INPUT -m state --state ESTABLISHED,RELATED,UNTRACKED -j ACCEPT
+
+    # enable all outbound traffic
+    iptables -A OUTPUT -j ACCEPT
+    
+    # enable ssh
+    iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 62815 -j ACCEPT
+
+    # enable HTTP and HTTPS
+    iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 7676 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 7677 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 8888 -j ACCEPT
+
+    # enable dns
+    iptables -A INPUT -p tcp --dport 53 -j ACCEPT
+    iptables -A INPUT -p udp --dport 53 -j ACCEPT
+
+    # enable Common software
+    iptables -A INPUT -p tcp --dport 25 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 3306 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 3389 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 6379 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 9092 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 10050 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 10051 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 23000 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 22122 -j ACCEPT
+
+    # enable ping
+    iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+
+    # enable mail
+    iptables -A INPUT -p tcp -m tcp --dport 110 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 143 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 992 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 993 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 25 -j ACCEPT
+
+EOF
+}
 
 #-----Function---------------------
 #  Usage : Sudo user initialization
 #----------------------------------
-
-
-show_yum_history(){
-yum history
+useradd_(){
+(useradd sremanager&& useradd developer) >/dev/null 2>&1
+passwd1=`< /dev/urandom tr -dc A-Za-z0-9 | head -c 20; echo` 
+passwd2=`< /dev/urandom tr -dc A-Za-z0-9 | head -c 20; echo`
+echo $passwd1 | passwd sremanager --stdin  >/dev/null 2>&1
+echo $passwd2 | passwd developer  --stdin  >/dev/null 2>&1
+sleep 2
+echo -e  "$(date "+${info_sign1}[%Y-%m-%d %H:%M:%S]") : Two users have been added. The account secret is as follows:\nsremanager/$passwd1 \ndeveloper/$passwd2 " |tee /root/user_info.log; for i in `seq 1 2`;do unset passwd$i;done  # 安全步骤-撤销密码的赋值
+sleep 2
+echo -e  "$(date "+${info_sign1}[%Y-%m-%d %H:%M:%S]") : Saved in \"/root/user_info.log\" , Sudo entitlement completed ; Sremanager is adminer , Developer is Ordinary users "
+Distribution_of_power
 }
 
+
+Distribution_of_power(){
+cat <<EOF >/etc/sudoers.d/permissions
+    ### Networking
+    Cmnd_Alias NOPASS_NETWORKING = /sbin/route, /sbin/ifconfig, /sbin/ip, /bin/ping, /bin/ping6, /bin/traceroute, /sbin/dhclient, /usr/bin/net, /sbin/iptables, /usr/bin/rfcomm, /usr/bin/wvdial, /sbin/iwconfig, /sbin/mii-tool, /usr/bin/host, /usr/bin/nslookup, /bin/hostname, /bin/hostnamectl
+    Cmnd_Alias PASS_NETWORKING = /sbin/ifconfig del, /sbin/ip del, /sbin/ifup, /sbin/ifdown, /usr/sbin/brctl
+
+    ### Installation and management of software
+    Cmnd_Alias NOPASS_SOFTWARE = /bin/rpm, /usr/bin/up2date, /usr/bin/yum, /usr/bin/make, /usr/bin/cmake, /usr/bin/ccmake, /usr/bin/pip, /usr/bin/easy_install
+
+    ### Services
+    Cmnd_Alias NOPASS_SERVICES = /sbin/service, /sbin/chkconfig, /etc/init.d/*, /usr/bin/systemctl start, /usr/bin/systemctl stop, /usr/bin/systemctl reload, /usr/bin/systemctl restart, /usr/bin/systemctl status, /usr/bin/systemctl enable, /usr/bin/systemctl disable, /usr/bin/nohup, /bin/journalctl
+
+    ### Updating the locate database
+    Cmnd_Alias NOPASS_LOCATE = /usr/bin/updatedb
+
+    ### Storage
+    Cmnd_Alias NOPASS_STORAGE = /sbin/fdisk, /sbin/sfdisk, /sbin/parted, /sbin/partprobe, /bin/mount, /bin/umount
+    Cmnd_Alias PASS_FORMATTING = /sbin/mkfs, /sbin/mkfs.btrfs, /sbin/mkfs.cramfs, /sbin/mkfs.ext2, /sbin/mkfs.ext3, /sbin/mkfs.ext4, /sbin/mkfs.minix, /sbin/mkfs.xfs
+
+    ### Delegating permissions
+    Cmnd_Alias NOPASS_DELEGATING = /bin/chown, /bin/chmod, /bin/chgrp, !/usr/sbin/visudo, !/usr/bin/vi *sudoer*, !/usr/bin/vim *sudoer*, /usr/bin/echo *sudoer*
+
+    ### Processes
+    Cmnd_Alias PASS_PROCESSES = /bin/nice, /bin/kill, /usr/bin/kill, /usr/bin/killall, /usr/bin/pkill
+
+    ### System Information
+    Cmnd_Alias NOPASS_SYSTEM_INFORMATION = /bin/uname, /bin/hostname, /usr/bin/lscpu, /usr/bin/free, /usr/sbin/iftop, /usr/sbin/iotop, /usr/bin/ionice, /usr/bin/sar, /bin/netstat, /usr/sbin/ss, /usr/bin/top, /bin/ps, /usr/bin/pstree, /bin/df, /usr/bin/iostat, /usr/bin/vmstat, /usr/bin/inxi, /usr/bin/uptime, /usr/bin/du, /usr/sbin/lsof
+
+    ### Text 
+    Cmnd_Alias NOPASS_TEXT = /bin/grep, /bin/awk, /bin/find, /usr/bin/locate, /bin/cat, /bin/tac, /usr/bin/head, /bin/more, /usr/bin/less, /usr/bin/tail, /usr/bin/tailf, /bin/cut, /bin/egrep, /bin/fgrep, /usr/bin/rename, /bin/sort, /usr/bin/tr, /usr/bin/uniq, /usr/bin/wc, /usr/bin/whatis, /usr/bin/whereis, /usr/bin/which, /bin/touch, /bin/mkdir, /usr/bin/install, /bin/ln, /bin/cp, /bin/mv, /usr/bin/dos2unix, /usr/bin/watch, /usr/bin/xargs
+
+    ### Text modify
+    Cmnd_Alias NOPASS_TEXT_MODIFY = /bin/vi, /usr/bin/vim, /bin/rm, /bin/echo, /bin/sed
+
+    ### Compression
+    Cmnd_Alias NOPASS_COMPRESSION = /bin/tar, /bin/gzip, /bin/gunzip, /usr/bin/zip, /usr/bin/unzip, /usr/bin/bzip2, /usr/bin/zdiff, /usr/bin/zgrep, /usr/bin/zegrep, /usr/bin/zfgrep, /usr/bin/zipgrep, /usr/bin/zless, /usr/bin/zmore, /usr/bin/xz, /usr/bin/unxz, /usr/bin/xzcat, /usr/bin/xzcmp, /usr/bin/xzdec, /usr/bin/xzdiff, /usr/bin/xzegrep, /usr/bin/xzfgrep, /usr/bin/xzgrep, /usr/bin/xzless, /usr/bin/xzmore, /usr/bin/bzcat, /usr/bin/bzcmp ,/usr/bin/bzdiff, /usr/bin/bzgrep, /usr/bin/bzip2, /usr/bin/bzless, /usr/bin/bzmore
+
+    ### File push
+    Cmnd_Alias NOPASS_FILEPUSH = /usr/bin/rz, /usr/bin/sz, /usr/bin/scp, /usr/bin/rsync
+
+    ### Create user and group
+    Cmnd_Alias NOPASS_CREATE_USER = /usr/sbin/useradd, ! /usr/bin/passwd root, /usr/bin/passwd, /usr/sbin/userdel, /usr/sbin/groupadd, /usr/sbin/groupdel, /usr/bin/chage, /bin/chgrp, /usr/sbin/chpasswd, /usr/bin/gpasswd ,/usr/sbin/groupmod, /usr/bin/id
+
+    ### Time
+    Cmnd_Alias NOPASS_TIME = /sbin/clock, /usr/sbin/clockdiff, /bin/date, /sbin/hwclock, /usr/sbin/ntpdate
+
+    ### Crontab
+    Cmnd_Alias NOPASS_CRONTAB = /usr/bin/crontab
+
+    ### Diff
+    Cmnd_Alias NOPASS_DIFF = /usr/bin/diff, /usr/bin/vimdiff
+
+    ### SHELL
+    Cmnd_Alias NOPASS_SHELL = /bin/bash, /bin/sh, /bin/usleep, /bin/sleep
+
+    ### Security
+    Cmnd_Alias NOPASS_SECURITY = /sbin/ip6tables, /sbin/iptables, /sbin/iptunnel, /usr/sbin/setenforce, /usr/sbin/getenforce
+
+    ### Capture package
+    Cmnd_Alias NOPASS_CAPTURE = /usr/sbin/tcpdump, /usr/sbin/tshark
+
+    ### Audit
+    Cmnd_Alias NOPASS_AUDIT = /usr/bin/last, /usr/bin/lastlog, /usr/bin/who, /usr/bin/whoami
+
+    ### Command
+    Cmnd_Alias NOPASS_COMMAND = /usr/bin/virsh, /usr/bin/virt-install, /usr/sbin/qemu-kvm, /usr/bin/qemu-img
+
+    ### Other
+    Cmnd_Alias NOPASS_OTHER = /usr/bin/screen, /usr/bin/wget, /usr/bin/nc, /usr/bin/nmap, /usr/bin/curl
+
+    ## Allow root to run any commands anywhere 
+    sremanager	ALL=(ALL)	NOPASSWD: NOPASS_NETWORKING, NOPASS_SOFTWARE, NOPASS_SERVICES, NOPASS_LOCATE, NOPASS_STORAGE, NOPASS_DELEGATING, NOPASS_SYSTEM_INFORMATION, NOPASS_TEXT, NOPASS_TEXT_MODIFY, NOPASS_COMPRESSION, NOPASS_FILEPUSH, NOPASS_CREATE_USER, NOPASS_TIME, NOPASS_SECURITY, NOPASS_CAPTURE, NOPASS_AUDIT, NOPASS_CRONTAB, NOPASS_DIFF, NOPASS_SHELL, NOPASS_COMMAND, NOPASS_OTHER, PASSWD: PASS_NETWORKING, PASS_FORMATTING, PASS_PROCESSES
+
+    Defaults:sremanager timestamp_timeout=5
+
+    developer	ALL=(ALL)	NOPASSWD: NOPASS_SYSTEM_INFORMATION, NOPASS_TEXT, NOPASS_COMPRESSION, NOPASS_FILEPUSH, NOPASS_DIFF
+
+EOF
+}
 
 #----Exend_Function--------------------------------
 #  Usage :  upgrade the kernel and BBR acceleration
@@ -474,3 +648,11 @@ judge_os
 
 Main
 
+
+#-----Analysis_01------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Annotation : 总体的结构还是由多个功能，按照不同分工进行嵌套，缩减调用时多余的代码量；最后使用一个总的函数作为入口，调度总体；（shell的执行顺序是先读后执行，如果提前调用了函数，而此部分函数尚未读取到，那么就会出现不识别的功能报错）；比较稳的方式，还是功能块随便写，把总的开关放在后面。judge_os ==> install_centos ==> _function ;这样函数块的读取顺序就不会成为执行的阻力，虽然看起来乱了一些；如果后续再添加一个支杆，只要写好对应的函数块并集合到其下，写好总开关的触发即可，也就说最后把支杆做到 judge_os 下 即可实现拓展！
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#----Analysis_02----------------------------------------------------------------------------------------------------------------------------
+# supplement : Main（唯一执行入口） ==> judge_os (分支选择) ==> install_centos/install_ubuntu {Function1,Function2..} (分支路线及其功能集合)
+#-------------------------------------------------------------------------------------------------------------------------------------------
