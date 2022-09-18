@@ -579,7 +579,7 @@ read -p  "$(date "+${info_sign2}[%Y-%m-%d %H:%M:%S]"):下载失败，是否重�
 }
 
 install_kernel(){
-cd /opt/tools/ && yum -y localinstall kernel-ml-*
+cd /opt/tools/ && yum -y localinstall kernel-ml*
 if [ $? -ne 0  ];then
 	sleep 1
 	echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): Kernel upgrade failed!!!"&& exit 3 
