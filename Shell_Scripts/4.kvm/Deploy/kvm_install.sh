@@ -1,6 +1,6 @@
 #!/bin/env bash 
-#
-#
+# Date ： 2022年9月21日19:31:54
+# Usage ： 快速创建kvm环境
 
 os_name=`cat /etc/redhat-release  | awk '{print $1}'`
 os_release=`cat /etc/redhat-release  | awk -F "release" '{print $2}' | awk -F "." '{print $1}'`
