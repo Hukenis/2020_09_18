@@ -1,4 +1,4 @@
-!/bin/env bash 
+#!/bin/env bash 
 # Usage : Install_LNMP's scripts of shell
 # Author : hukenis@163.com
 
@@ -281,8 +281,9 @@ cp ${source_package_Php}/php-${Version_of_Php}/sapi/fpm/init.d.php-fpm /etc/init
 ###MYSQL_INSTALL###
 #  VERSION 5.7.34 #
 ###################
-echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] MYSQL-${Version_of_Mysql} ${print_info00} Download  \n "  && sleep 2
+
 download_mysql(){
+echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] MYSQL-${Version_of_Mysql} ${print_info00} Download  \n "  && sleep 2
 mkdir -p ${source_package_Mysql} && cd ${source_package_Mysql}
 curl -O https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${Version_of_Mysql}.tar.gz
 if [ $? -ne 0 ];then
