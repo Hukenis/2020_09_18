@@ -98,7 +98,7 @@ local selinuxConfigBackup='/etc/selinux/config.backup'
 Calibration_time(){
 timedatectl set-timezone Asia/Shanghai >/dev/null 2>&1
 ntpdate cn.pool.ntp.org >/dev/null 2>&1
-yum install ntp >/dev/null 2>&1
+yum -y install ntp >/dev/null 2>&1
 systemctl start ntpd >/dev/null 2>&1
 systemctl enable ntpd >/dev/null 2>&1
 timedatectl set-ntp yes >/dev/null 2>&1
