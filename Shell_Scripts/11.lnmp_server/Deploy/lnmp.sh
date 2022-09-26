@@ -206,7 +206,7 @@ EOF
 download_php(){
 echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] PHP-${Version_of_Php} ${print_info00} Download  \n " && sleep 2
 mkdir -p ${source_package_Php} && cd ${source_package_Php}
-curl -O https://www.php.net/distributions/php-${Version_of_Php}tar.gz
+curl -O https://www.php.net/distributions/php-${Version_of_Php}.tar.gz
 if [ $? -ne  0 ];then
 retry_download_php01
 fi
@@ -236,7 +236,7 @@ done
 
 install_php(){
 echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] PHP-${Version_of_Php} ${print_info00} Install  \n " && sleep 2
-cd ${source_package_Php} && tar -xvf php-${Version_of_Php}tar.gz && cd ${source_package_Php}/php-${Version_of_Php}
+cd ${source_package_Php} && tar -xvf php-${Version_of_Php}.tar.gz && cd ${source_package_Php}/php-${Version_of_Php}
 
 (./configure --prefix=${php_install_Dir}/ --with-config-file-path=${php_install_Dir}/etc --with-fpm-user=nginx --with-fpm-group=nginx --with-curl  --enable-gd --with-gettext --with-iconv-dir --with-kerberos --with-libdir=lib64  --with-mysqli --with-openssl  --with-pdo-mysql --with-pdo-sqlite --with-pear   --with-xmlrpc --with-xsl --with-zlib --with-bz2 --with-mhash --enable-fpm --enable-bcmath  --enable-inline-optimization --enable-mbregex --enable-mbstring --enable-opcache --enable-pcntl --enable-shmop --enable-soap --enable-sockets --enable-sysvsem --enable-sysvshm --enable-xml  --enable-fpm  --with-freetype --with-jpeg  --with-xpm)&&make &&make install 
 
@@ -269,11 +269,10 @@ Initialize_PHP_configuration(){
 echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] PHP-${Version_of_Php} ${print_info00} Initialization  \n " && sleep 2
 cp ${source_package_Php}/php-${Version_of_Php}/php.ini-production ${php_install_Dir}/etc/php.ini
 cd ${php_install_Dir}/etc && cp php-fpm.conf.default php-fpm.conf
-cd ${php_install_Dir}/php-fpm.d/ && cp www.conf.default www.conf
-
+cd ${php_install_Dir}/etc/php-fpm.d/ && cp www.conf.default www.conf
 Initialize_PHP_configuration00
 cd ${php_install_Dir}/sbin && echo "PATH=$PWD:\$PATH" > /etc/profile.d/php.sh
-cp ${source_package_Php}/php-${Version_of_Php}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+cp ${source_package_Php}/php-${Version_of_Php}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm && chmod +x  /etc/init.d/php-fpm
 }
 
 
@@ -281,7 +280,6 @@ cp ${source_package_Php}/php-${Version_of_Php}/sapi/fpm/init.d.php-fpm /etc/init
 ###MYSQL_INSTALL###
 #  VERSION 5.7.34 #
 ###################
-
 download_mysql(){
 echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] MYSQL-${Version_of_Mysql} ${print_info00} Download  \n "  && sleep 2
 mkdir -p ${source_package_Mysql} && cd ${source_package_Mysql}
@@ -315,7 +313,7 @@ done
 
 install_mysql(){
 echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] MYSQL-${Version_of_Mysql} ${print_info00} Install  \n "  && sleep 2
-cd ${source_package_Mysql} && tar -xvf mysql-boost-${Version_of_Mysql}tar.gz && cd ${source_package_Mysql}/mysql-boost-${Version_of_Mysql}
+cd ${source_package_Mysql} && tar -xvf mysql-boost-${Version_of_Mysql}.tar.gz && cd ${source_package_Mysql}/mysql-${Version_of_Mysql}
 (cmake -DCMAKE_INSTALL_PREFIX=${mysql_install_Dir}  -DMYSQL_UNIX_ADDR=${mysql_install_Dir}/bin/mysql.sock -DDEFAULT_CHARSET=utf8 -DDEFAULT_COLLATION=utf8_general_ci -DWITH_BOOST=boost)&&make && make install
 }
 
@@ -331,6 +329,7 @@ fi
 mkdir ${Mysql_DataDir}/logs -p
 mkdir ${Mysql_DataDir}/data -p 
 touch  ${mysql_install_Dir}/bin/mysqld.pid
+touch  ${Mysql_DataDir}/logs/mysqld.log
 chmod +755  /data  
 chown mysql.mysql ${Mysql_DataDir}  -R 
 chown mysql.mysql ${mysql_install_Dir}  -R 
@@ -339,6 +338,11 @@ chown mysql.mysql ${mysql_install_Dir}  -R
 cd ${mysql_install_Dir}/lib && echo "PATH=$PWD:\$PATH" > /etc/profile.d/mysql.sh
 cd ${mysql_install_Dir}/bin && echo "PATH=$PWD:\$PATH" >> /etc/profile.d/mysql.sh
 source /etc/profile
+
+
+./${mysql_install_Dir}/bin/mysqld --initialize --user=mysql --console && echo "initialize commplete" # 初始化指令
+
+grep  -i "password is generated"  ${Mysql_DataDir}/logs/mysqld.log   # 查看初始密码
 
 cp ${mysql_install_Dir}/support-files/mysql.server /etc/init.d/mysql && chmod +x /etc/init.d/mysql
 cat <<EOF  >/etc/my.cnf
@@ -392,21 +396,22 @@ Initialize_NG_configuration
 
 
 PHP_INSTALL_00(){
-download_php
-install_php 
-## 自动义配置路径的选择，待补充
-Initialize_PHP_configuration
+ download_php
+ install_php 
+# 自动义配置路径的选择，待补充
+ Initialize_PHP_configuration
 }
 
 MYSQL_INSTALL_00(){
-download_mysql
-install_mysql
-Initialize_Mysql_configuration
+ download_mysql
+ install_mysql
+ Initialize_Mysql_configuration
 }
 
 #START_LNMP(){}
 
 Main(){
+prepare_env
 NGINX_INSTALL_00
 PHP_INSTALL_00
 MYSQL_INSTALL_00
