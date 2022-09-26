@@ -1,23 +1,23 @@
-#!/bin/env bash 
+!/bin/env bash 
 # Usage : Install_LNMP's scripts of shell
 # Author : hukenis@163.com
 
 
-judge_OS(){}    # 判断操作系统是否是Centos7|8
-judge_RAM(){}	# 判断内存是否充足
-judge_USER(){}	# 判断用户权限是否足够
+# judge_OS(){}    # 判断操作系统是否是Centos7|8
+# judge_RAM(){}   # 判断内存是否充足
+# judge_USER(){}  # 判断用户权限是否足够
 
 
  #########################################
- #		VERSION			 #
+ #              VERSION                  #
  #########################################
 
-	Version_of_Nginx="1.22.0"
-	Version_of_Php="7.4.30"
-	Version_of_Mysql="5.7.34"
+        Version_of_Nginx="1.22.0"
+        Version_of_Php="7.4.30"
+        Version_of_Mysql="5.7.34"
 
  ##########################################
- #	     SOURCE PACKAGE		  # 
+ #           SOURCE PACKAGE               # 
  ##########################################
 
 source_package_Nginx="/opt/source_package/nginx"
@@ -25,7 +25,7 @@ source_package_Php="/opt/source_package/php"
 source_package_Mysql="/opt/source_package/mysql"
 
  ##########################################
- #	       INSTALL DIR		  #
+ #             INSTALL DIR                #
  ##########################################
   
   nginx_install_Dir="/usr/local/nginx"
@@ -37,7 +37,7 @@ source_package_Mysql="/opt/source_package/mysql"
 # ::::::::::::::::::::::::::::::::::::::::::: #
 
  ###########################################
- #	   --COMPILE ENVIRONMENT--	   # 
+ #         --COMPILE ENVIRONMENT--         # 
  ###########################################
 
 prepare_env(){
@@ -72,9 +72,11 @@ read -p  "下载失败，是否重试？（Y|N）" choice01
         Y|y|yes|Yes)
         sleep 3
         download_nginx
-	N|n|no|No)
-	sleep 1
-	echo "bye ~";exit
+        ;;
+        N|n|no|No)
+        sleep 1
+        echo "bye ~";exit
+        ;;
         esac
 }
 
@@ -100,7 +102,7 @@ echo "PATH=$PWD:\$PATH" > /etc/profile.d/nginx.sh
 
 Initialize_NG_configuration(){
 echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] NGINX-${Version_of_Nginx} ${print_info00} Initialization  \n " && sleep 2
-local  program_of_thread="auto"  	      ## Nginx 进程配置
+local  program_of_thread="auto"               ## Nginx 进程配置
 local  php_hostAndPort="127.0.0.1:9000"      ## Php 主机及端口指定
 
 
@@ -198,7 +200,7 @@ EOF
 }
 
 ###PHP_INSTALL###
-# VERSION 8.0.0	#
+# VERSION 8.0.0 #
 #################
 
 download_php(){
@@ -216,9 +218,11 @@ read -p  "下载失败，是否重试？（Y|N）" choice02
         Y|y|yes|Yes)
         sleep 3
         download_php
+        ;;
         N|n|no|No)
         sleep 1
         echo "bye ~";exit
+        ;;
         esac
 }
 
@@ -254,9 +258,9 @@ cd ${php_install_Dir}/etc
 cp -rf  php.ini  php.ini~
 sed -i -e  '/;date.timezone =/a date.timezone = Asia\/Shanghai'     php.ini
 sed -i -e  's/post_max_size = 8M/; post_max_size = 8M/g'            php.ini
-sed -i -e  '/; post_max_size = 8M/a  post_max_size = 16M'  	    php.ini
-sed -i -e  's/max_input_time = 60/; max_input_time = 60/g'  	    php.ini
-sed -i -e  '/; max_input_time = 60/a max_input_time = 300' 	    php.ini
+sed -i -e  '/; post_max_size = 8M/a  post_max_size = 16M'           php.ini
+sed -i -e  's/max_input_time = 60/; max_input_time = 60/g'          php.ini
+sed -i -e  '/; max_input_time = 60/a max_input_time = 300'          php.ini
 sed -i -e  's/max_execution_time = 30/; max_execution_time = 30/g'  php.ini
 sed -i -e  '/; max_execution_time = 30/a  max_execution_time = 300' php.ini
 }
@@ -292,9 +296,11 @@ read -p  "下载失败，是否重试？（Y|N）" choice03
         Y|y|yes|Yes)
         sleep 3
         download_mysql
+        ;;
         N|n|no|No)
         sleep 1
         echo "bye ~";exit
+        ;;
         esac
 }
 
@@ -317,8 +323,8 @@ Initialize_Mysql_configuration(){
 echo -e "\n${print_beacon}-[TIME: `date "+%Y-%m-%d %H:%M:%S"`] MYSQL-${Version_of_Mysql} ${print_info00} Initialization  \n " && sleep 2
 grep mysql /etc/passwd >/dev/null 2&>1
 if [ $? -ne 0 ];then
-	groupadd mysql
-	useradd -r -g mysql -s /bin/false mysql
+        groupadd mysql
+        useradd -r -g mysql -s /bin/false mysql
 fi
 
 mkdir ${Mysql_DataDir}/logs -p
@@ -397,6 +403,12 @@ install_mysql
 Initialize_Mysql_configuration
 }
 
-START_LNMP(){}
+#START_LNMP(){}
 
+Main(){
+NGINX_INSTALL_00
+PHP_INSTALL_00
+MYSQL_INSTALL_00
+}
 
+Main
