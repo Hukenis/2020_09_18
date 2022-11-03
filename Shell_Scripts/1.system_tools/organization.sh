@@ -346,7 +346,7 @@ esac
 }
 
 kernel_upgrade(){
-kernel_version="5.19.9-1.el7"
+kernel_version="6.0.6-1.el7"
 kernel_name="kernel-ml-${kernel_version}.elrepo.x86_64.rpm"
 kernel_devel_name="kernel-ml-devel-${kernel_version}.elrepo.x86_64.rpm"
 # curl -o /opt/tools/${kernel_name}  https://elrepo.org/linux/kernel/el7/x86_64/RPMS/${kernel_name}
