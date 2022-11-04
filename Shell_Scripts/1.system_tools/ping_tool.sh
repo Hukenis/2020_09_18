@@ -15,13 +15,12 @@ mkdir -p ${Today_dir}
 
 create_ip_logDir
 
-fuction_ping(){
 
 if [[  -z $1  ]];then 
 
 	read -p "Please specify the test file or ip_address :   " machine_ip
 else
-	machine_ip=$1
+	machine_ip=$@
 fi
 
 if [[  -f ${machine_ip}  ]];then 
@@ -29,30 +28,29 @@ if [[  -f ${machine_ip}  ]];then
 	ip=`cat ${machine_ip}` 
 	echo -e "`date  +[%Y%m%d_%H:%M:%S][info]` : Ping_command Debug log  " >>${Today_dir}/ping_all.log
 
-	for i in ${ip};
+	(for i in ${ip};
 	do	
-		ping -c 3  ${i} >>  ${Today_dir}/ping_all.log && echo -e "\n ################# "
+		ping -c 3  ${i} >>  ${Today_dir}/ping_all.log && echo -e "\n"
 			if	[   $? -eq 0 ];then 
 				echo -e "`date  +[%Y%m%d_%H:%M:%S][info]`  $i is ok "|tee -a  ${Today_dir}/ping_tong.log
 			else
-				echo -e "\n ################# "
+				echo -e "\n"
 				echo -e "`date  +[%Y%m%d_%H:%M:%S][warring]` $i is Unreachable " | tee -a  ${Today_dir}/ping_failed.log
 			fi
-	done
+	done)&
 else
 	# echo ${machine_ip} is not file 
-	for i in  ${machine_ip}
+	(for i in  ${machine_ip}
 	do
-		ping -c 3  ${i} >>  ${Today_dir}/ping_all.log && echo -e "\n ################ "
+		ping -c 3  ${i} >>  ${Today_dir}/ping_all.log && echo -e "\n "
 		if      [   $? -eq 0 ];then
                                 echo  -e "`date  +[%Y%m%d_%H:%M:%S][info]` ${i} is ok " |tee -a  ${Today_dir}/ping_tong.log
                         else
-				                        echo -e "\n ################# "
+				echo -e "\n"
                                 echo  -e "`date  +[%Y%m%d_%H:%M:%S][warring]` ${i} is Unreachable " | tee -a  ${Today_dir}/ping_failed.log
                 fi
-	done 
+	done)& 
 
 fi
-}
 
-function_ping
+## 注 ：核心功能不可以放入函数中调用，否则会丧失第一次传参的能力，会直接触发 " read -p "，提示换行输入。
