@@ -56,7 +56,7 @@ echo "${MACHINES_VNC_PORT}" | [ -n "`sed -n '/^[0-9][0-9]*$/p'`" ]
 	fi
 ss -anptl | grep "${MACHINES_VNC_PORT}" 2>1&>/dev/null
 	if  [ $? == 0 ];then
-		echo " VNC_Port is exist ，想要继续创建虚拟机的话，那你必须再想一个 VNC 端口 ~~" ; exit
+		echo " VNC_Port is exist ，想要继续创建虚拟机的话，那你必须再想一个用于 VNC 端口 " ; exit
 	fi
 }
 
@@ -64,12 +64,12 @@ ss -anptl | grep "${MACHINES_VNC_PORT}" 2>1&>/dev/null
 Check_NAME(){		# 检查 机器名字是否存在
 local NEW_DISK_PATH=${MACHINES_ALL_DISK_PATH}/${MACHINES_NAME}
         if  [ -e ${NEW_DISK_PATH}  ];then
-                echo " 已存在相同名字的虚拟机相关文件"&&exit
+                echo " 已存在同名的虚拟机相关文件"&&exit
         fi
 
 virsh list --all | grep "${MACHINES_NAME}"
 	if  [ $? == 0  ];then
-		echo " NAME is exist ，想要继续创建虚拟机的话，那你必须再想一个 NAME ~~ "  ; exit
+		echo " NAME is exist ，要继续创建虚拟机的话，你必须想个独一无二的 NAME  "  ; exit
 	else
 		sudo mkdir ${MACHINES_ALL_DISK_PATH}/${MACHINES_NAME}
 	fi
@@ -131,14 +131,14 @@ Read_STDIN
 Check_Port
 Check_NAME
 CONFIRM
-##Create_DISK    ## 并入 ‘CONFIRM’ 功能中
-##Create_XML     ## 并入 ‘CONFIRM’ 功能中
-##Start_MECHINE  ## 并入 ‘CONFIRM’ 功能中
+##Create_DISK    ## 并入 ‘CONFIRM’ 功能中，反复确认后选项中触发创建
+##Create_XML     ## 并入 ‘CONFIRM’ 功能中，同上
+##Start_MECHINE  ## 并入 ‘CONFIRM’ 功能中，同上
 }
 
 
-Interactive(){		# 入口菜单界面
-while true
+Interactive(){		# 入口菜单界面，
+while [1]
 do
 	cat <<EOF
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
