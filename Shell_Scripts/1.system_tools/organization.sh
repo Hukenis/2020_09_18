@@ -141,27 +141,27 @@ fi
 # Basic software deployment
 sleep 1
 echo -e "\n$(date "+${info_sign2}[%Y-%m-%d %H:%M:%S]"): Deploy basic software and development tools ";sleep 2
-base_software="yum-plugin-fastestmirror unzip unrar  yum-axelget wget tree nmap nc lrzsz screen iftop iotop htop inxi dos2unix iptables iptables-services iptables-devel iptables-utils nload psmisc vim netstat  rsync net-tools fail2ban glances tmux ifstat  "
+base_software="unzip unrar  yum-axelget wget tree nmap nc lrzsz screen iftop iotop htop inxi dos2unix iptables iptables-services iptables-devel iptables-utils nload psmisc vim netstat  rsync net-tools fail2ban glances tmux ifstat  "
 yum -y groupinstall  "Compatibility libraries" "Debugging Tools" "Development tools"  && yum -y install epel-release && yum makecache &&  yum -y install  ${base_software}
 yum -y update --exclude=kernel*
 
 maxProcessesLimit 
 Kernel_Tuning
 sshOptimize
-systemctl stop NetworkManager >/dev/null 2>&1
-if [ $? -ne 0  ];then
-	 echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): NetworkManager Change failed \n"
-fi
-systemctl disable NetworkManager >/dev/null 2>&1
-if [ $? -ne 0  ];then
-         echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): NetworkManager Change failed \n"
-fi
+# systemctl stop NetworkManager >/dev/null 2>&1
+# if [ $? -ne 0  ];then
+# 	 echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): NetworkManager Change failed \n"
+# fi
+# systemctl disable NetworkManager >/dev/null 2>&1
+# if [ $? -ne 0  ];then
+#          echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): NetworkManager Change failed \n"
+# fi
 
-systemctl enable iptables	>/dev/null 2>&1
-if [ $? -ne 0  ];then
-         echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): Iptables  Change failed \n"
-fi
-kernel_upgrade1 
+# systemctl enable iptables	>/dev/null 2>&1
+# if [ $? -ne 0  ];then
+#          echo -e "\n$(date "+${info_sign3}[%Y-%m-%d %H:%M:%S]"): Iptables  Change failed \n"
+# fi
+# kernel_upgrade1 
 }
 
 
@@ -332,8 +332,7 @@ yum history
 #  Usage :  upgrade the kernel and BBR acceleration
 #--------------------------------------------------
 kernel_upgrade1(){
-read -p "$(date "+${info_sign2}[%Y-%m-%d %H:%M:%S]"): Optional expansion :::  Upgrade the kernel ::: If required, enter Yes ，Upgrading the kernel is risky. Think twice before you 
-act ！！！(yes|no) "  choice03
+read -p "$(date "+${info_sign2}[%Y-%m-%d %H:%M:%S]"): Optional expansion :::  Upgrade the kernel ::: If required, enter Yes ，Upgrading the kernel is risky. Think twice before you act ！！！(yes|no) "  choice03
 case $choice03 in
         yes|YES|y|Y)
         kernel_upgrade
@@ -473,4 +472,3 @@ judge_os
 }
 
 Main
-
