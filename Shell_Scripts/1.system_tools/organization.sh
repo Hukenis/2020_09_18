@@ -141,7 +141,7 @@ fi
 # Basic software deployment
 sleep 1
 echo -e "\n$(date "+${info_sign2}[%Y-%m-%d %H:%M:%S]"): Deploy basic software and development tools ";sleep 2
-base_software="unzip unrar  yum-axelget wget tree nmap nc lrzsz screen iftop iotop htop inxi dos2unix iptables iptables-services iptables-devel iptables-utils nload psmisc vim netstat  rsync net-tools fail2ban glances tmux ifstat  "
+base_software="unzip unrar wget tree nmap nc lrzsz screen iftop iotop htop inxi dos2unix iptables iptables-services iptables-devel iptables-utils nload psmisc vim netstat  rsync net-tools fail2ban glances tmux ifstat  "
 yum -y groupinstall  "Compatibility libraries" "Debugging Tools" "Development tools"  && yum -y install epel-release && yum makecache &&  yum -y install  ${base_software}
 yum -y update --exclude=kernel*
 
