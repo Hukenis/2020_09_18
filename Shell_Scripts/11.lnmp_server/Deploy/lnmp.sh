@@ -47,7 +47,7 @@ yum -y install epel-release
 yum -y install  centos-release-scl  gcc gcc-c++ make zlib zlib-devel pcre pcre-devel libjpeg libjpeg-devel libpng libpng-devel freetypefreetype-devel libxml2 libxml2-devel glibc glibc-devel glib2 glib2-devel bzip2 bzip2-devel ncurses ncurses-devel curl curl-devel e2fsprogs e2fsprogs-devel krb5 krb5-devel openssl openssl-devel openldap openldap-develnss_ldap openldap-clients openldap-servers libxslt libxslt-devel  oniguruma oniguruma-devel sqlite-devel cmake
 
 yum -y install openssl-devel bzip2-devel libffi-devel  sqlite-devel gpm-libs oniguruma oniguruma-devel libsodium libsodium-devel xz-devel libxml2-devel libcurl-devel
-
+yum -y install pcre-devel
 yum -y install  bash-completion bash-completion-extras libicu-devel libjpeg libjpeg-devel  nss_ldap cmake  boost-devel libevent libevent-devel gd gd-devel openjpeg-devel
 yum -y install  libgcrypt-devel libpng-devel libgpg-error-devel libxslt-devel cmake libmcrypt-devel libmcrypt  recode-devel recode
 }
