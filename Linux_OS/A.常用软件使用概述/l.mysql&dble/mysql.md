@@ -382,7 +382,7 @@ WHERE <查询条件>
 
 思想：因为要查的字段不在同一张表，故利用多表中的字段交集查询，如图所示：
 
-<img src="assets/image-20230303235909031.png" alt="image-20230303235909031" style="zoom: 50%;" /><img src="assets/image-20230304000631559.png" alt="image-20230304000631559" style="zoom:50%;" />
+<img src="./image-20230303235909031.png" alt="image-20230303235909031" style="zoom: 50%;" /><img src="./image-20230304000631559.png" alt="image-20230304000631559" style="zoom:50%;" />
 
 ###### 4-7-1 左联查询
 
