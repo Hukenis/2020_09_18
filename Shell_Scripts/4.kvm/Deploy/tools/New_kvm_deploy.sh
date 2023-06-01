@@ -76,6 +76,31 @@ if [[ ! -e ${iso_image} ]];then
 fi
 }
 
+other_iso_check(){
+# iso_image=${run_path[iso_dir]}/$1
+iso_path=`ls ${run_path[iso_dir]} | grep -i $1`
+iso_quantity=`ls ${run_path[iso_dir]} | grep -ic $1`
+if   [[ -n  ${iso_path} ]];then
+    iso_image_name=${iso_path}
+else
+    echo -e "${w_msg} No installation media detected, Please download the corresponding system by yourself ！！ ";exit 
+fi
+
+wait 
+
+if [[ ${iso_quantity} -gt 1 ]];then
+	read -p "Choose to match to multiple ISO images :
+	<<<<
+
+	`tr -s \  '
+	' <<<${iso_path}`
+
+	>>>> : " iso_image_name
+
+fi
+}
+
+
 # 镜像下载
 iso_download(){
 case $1 in 
@@ -185,7 +210,7 @@ do
                          echo -e "Bad Port !"
                 elif  [[  -n  `ss -anptl | grep "$Port"`  ]];then
                          echo -e " Port exists and conflicts !"
-                elif  [[ $Port -le 5960   ]];then
+                elif  [[ $Port -lt 5960   ]];then
                          echo -e "Invalid vnc port ! "
                 else
                           break
@@ -327,6 +352,16 @@ qume_image_Create
 _install  ${iso_image_name}
 }
 
+# 选项O 自定义部署系统
+Customize_install(){
+read -p "Enter the system you want to deploy  " system_iso   
+iso_image_name="${system_iso}"
+other_iso_check ${iso_image_name}
+v_input
+qume_image_Create
+_install  ${iso_image_name}
+}
+
 # 模板急速部署 centos7
 centos_7_fast_install(){
 check_template    centos_7
@@ -382,15 +417,17 @@ read -p "Name for snapshot [TYPE NAME]:  " SNAP_NAME
 read -p "Add a description for snapshot [TYPE RESUME]:  " RESUME
 if [[ -z ${SNAP_NAME}  ]];then
         virsh snapshot-create $DOMAIN
-        echo -e "${i_msg} You created an anonymous snapshot" && break
+        echo -e "${i_msg} You created an anonymous snapshot"
 else    
         
-        if [[ -z ${RESUME} ]];then
+        if   [[ ${SNAP_NAME} == "exit"   ]];then
+                Snapshot_action
+        elif [[ -z ${RESUME} ]];then
                 virsh snapshot-create-as --domain $DOMAIN --name "$SNAP_NAME"
-                echo -e "${i_msg} Snapshot ${SNAP_NAME} of ${DOMAIN} has been created " && break
+                echo -e "${i_msg} Snapshot ${SNAP_NAME} of ${DOMAIN} has been created "
         else
                 virsh snapshot-create-as --domain $DOMAIN --name "$SNAP_NAME" --description "$RESUME"
-                echo -e "${i_msg} Snapshot ${SNAP_NAME} of ${DOMAIN} has been created " && break
+                echo -e "${i_msg} Snapshot ${SNAP_NAME} of ${DOMAIN} has been created "
         fi
 fi
 }
@@ -451,12 +488,16 @@ delete_VM(){
 while true;
 do
         select_machine
+        echo -e "${w_msg} Before removing a virtual machine, its snapshot must be deleted ！"
         read -p "confirm deletion ${DOMAIN}  [yes/no]:  " confirm
         case $confirm in 
                 yes|Y|y|YES)
-
-                rm -rf  `grep "source file"  ${DOMAIN} | awk -F "'" '{print $2}'`
-                virsh define  $DOMAIN
+                for i in `virsh snapshot-list  ${DOMAIN}|awk 'NR>2{print $1}' |egrep -v '^$'` 
+                do
+                       virsh snapshot-delete $DOMAIN  $i
+                done
+                rm -rf `grep "source file" /etc/libvirt/qemu/${DOMAIN}.xml   -r |awk -F "'" '{print $2}'`
+                virsh undefine  $DOMAIN
                 echo -e "${i_msg} VM: ${DOMAIN} deleted"
                 ;;
                 no|N|n|No)
@@ -500,6 +541,9 @@ EOF
         E|e)
         clear && memu_display
         ;;
+        exit|quit)
+        exit
+        ;;
         *)
         echo -e "\n\n\npleasecallme5429" 
         ;;
@@ -520,13 +564,15 @@ cat <<EOF
              -------------------------------
              | Creation of virtual machines|
              -------------------------------
-    
+  NOTE:  Must run in the ubuntu system in a Chinese environment!
+
   OPTIONS:
             A.  CENTOS_7  INSTALL  FAST            
             B.  UBUNTU_22 INSTALL  FAST            
             C.  CENTOS_7  DEPLOY                   
             D.  UBUNTU_22 DEPLOY
             E.  Specify Mirror RollBACK
+	    O.  Optional Mirror INSTALL 
             F.  Remove virtual machine absolutely
             H.  HELP                               
             Q.  EXIT                                 
@@ -552,6 +598,9 @@ EOF
         E|e)
         Snapshot_action
         ;;
+	o|O)
+	Customize_install
+	;;
         F|f)
         delete_VM       
         ;;
